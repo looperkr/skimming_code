@@ -1,14 +1,28 @@
 #! /afs/cern.ch/atlas/software/releases/17.2.8/sw/lcg/external/Python/2.6.5/i686-slc5-gcc43-opt/bin/python
 
-import subprocess,sys
-import os,string
+from __future__ import with_statement
+
+import subprocess, sys
+import os, string
 
 # define Input Containers and name of output files
 
 fPath = os.getcwd()
 print fPath
-fin   = open("data_in_redo.txt", 'r')
-fout  = open("data_out_redo.txt",'r')
+
+
+def read_filenames_from_file(filename):
+    """
+    Open specified read lines. Return a list of all non-blank lines in
+    file, stripped of leading/trailing whitespace.
+    """
+    with open(filename, 'r') as file:
+        return [name for name in map(str.strip, file) if name != '']
+
+
+fString_in = read_filenames_from_file("data_in_redo.txt")
+fString_out = read_filenames_from_file("data_out_redo.txt")
+
 
 # define TopPhys Cache and date of production
 # ns: new skim
@@ -24,7 +38,7 @@ fFile = "skim.root "
 
 fCPU  = ";--maxCpuCount=100000"
 #fCPU  = ";--maxCpuCount=85000"
-#fNin   = ";--maxNFilesPerJob=50" 
+#fNin   = ";--maxNFilesPerJob=50"
 #fDest  = ";--destSE=DESY-HH_LOCALGROUPDISK;"
 
 # ANALY_CERN_XROOTD is always excluded because output files lying there can just be downloaded at CERN (inconvenient)
@@ -33,12 +47,6 @@ fExcluded = ";" #--excludedSite=ANALY_GOEGRID,ANALY_DESY-HH"
 #fExcluded = ";--excludedSite=ANALY_TOKYO;"
 
 #tmp="python slim_mc_1l_power.py %IN"
-
-fString_in  = fin.readlines()
-fString_out = fout.readlines()
-
-fin.close()
-fout.close()
 
 fNLines_in  = len(fString_in)
 fNLines_out = len(fString_out)
@@ -58,5 +66,3 @@ for i in range(0, fNLines_in):
      cmd = ("prun;--inDS;" + fInput + ";--outDS;" + fOutput + ";--exec;" + "python slim_data_2l.py %IN" + ";--nFilesPerJob=1;" + ";--cmtConfig=" + fCMT + ";--rootVer=" + froot + fExcluded +fCPU +  ";--outputs;" + fFile)
      print cmd.split(";")
      subprocess.call(cmd.split(";"), cwd=fPath)
-
-
